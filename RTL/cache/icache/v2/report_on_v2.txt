@@ -1,0 +1,1 @@
+prior errors fixed, still unsure if we should register the address to ensure that the cpu doesn't have to load the memory address till there is a return.

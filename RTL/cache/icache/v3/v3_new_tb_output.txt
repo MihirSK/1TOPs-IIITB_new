@@ -1,0 +1,56 @@
+[45000] ---- T1 smoke: miss then hit
+[155000] ---- T2 all 16 word offsets in a line, forward and backward
+[675000] ---- T3 memory latency modes (comb slave), poisoned rdata
+INFO: [USF-XSim-96] XSim completed. Design snapshot 'tb_icache_full_behav' loaded.
+INFO: [USF-XSim-97] XSim simulation ran for 1000ns
+launch_simulation: Time (s): cpu = 00:00:08 ; elapsed = 00:00:07 . Memory (MB): peak = 1405.719 ; gain = 0.000
+run 10 ms
+[4815000] ---- T4 index sweep (all 256 sets)
+[32975000] ---- T5 each tag bit [63:14] must be compared
+[43475000] ---- T6 direct-mapped conflict: A B A B = 4 refills
+[43885000] ---- T7 sequential streaming, 1024 words
+[59885000] ---- T8 address edges
+[60295000] ---- N7 addr[1:0] != 0: aligned word is returned, tag/index untouched
+[61035000] ---- T9 FENCE.I: basic, flush+hit same cycle, flush+miss same cycle
+[64615000] ---- N8 flush held 4 cycles with a missing request pending
+[64965000] ---- T10 FENCE.I during refill, every beat, 3 latency modes x 2 memory personalities
+[81225000] ---- N6 flush matrix: beat 0..7 / FILL / IDLE  x  cpu_req 0/1
+[90055000] ---- T11 reset in the middle of a refill (async, pin-timed)
+[90705000] ---- N1 reset clears all 256 sets (async, mid-cycle, cpu_req held high)
+[144535000] ---- N2 reset in FILL, reset during a hit stream, back-to-back resets
+[145875000] ---- N5 idle noise: cpu_req low while cpu_addr wanders (incl. cached lines)
+[149985000] ---- N3 registered memory personality (ack <= req & !ack), poisoned rdata
+[150005000] ---- T1 smoke: miss then hit
+[150195000] ---- T2 all 16 word offsets in a line, forward and backward
+[150875000] ---- T6 direct-mapped conflict: A B A B = 4 refills
+[151625000] ---- T1 smoke: miss then hit
+[151815000] ---- T2 all 16 word offsets in a line, forward and backward
+[152495000] ---- T6 direct-mapped conflict: A B A B = 4 refills
+[153245000] ---- T1 smoke: miss then hit
+[153435000] ---- T2 all 16 word offsets in a line, forward and backward
+[154115000] ---- T6 direct-mapped conflict: A B A B = 4 refills
+[154845000] ---- T7 sequential streaming, 1024 words
+[278495000] ---- N4 core-like fetch stream (req always high, ack-driven PC, stalls, branches)
+[909415000] ---- O1 OPEN ITEM: cpu_addr changes while a refill is outstanding
+[910725000] ---- O2 OPEN ITEM: memory wrapper with ack <= req (pipelined, no ack gap)
+[910885000] OPEN-ITEM(2): rdata mismatch addr=00000000e8000008 got=18a7b553 exp=bd6737f2
+[910885000] OPEN-ITEM(2): ARCH: rdata is not legal memory content addr=00000000e8000008 got=18a7b553
+[910895000] OPEN-ITEM(2): rdata mismatch addr=00000000e800000c got=a04df7a1 exp=aad4cd7b
+[910895000] OPEN-ITEM(2): ARCH: rdata is not legal memory content addr=00000000e800000c got=a04df7a1
+[910905000] OPEN-ITEM(2): rdata mismatch addr=00000000e8000010 got=bd6737f2 exp=6342210c
+[910905000] OPEN-ITEM(2): ARCH: rdata is not legal memory content addr=00000000e8000010 got=bd6737f2
+[910915000] OPEN-ITEM(2): rdata mismatch addr=00000000e8000014 got=aad4cd7b exp=53f0c1f8
+[910915000] OPEN-ITEM(2): ARCH: rdata is not legal memory content addr=00000000e8000014 got=aad4cd7b
+[910925000] OPEN-ITEM(2): rdata mismatch addr=00000000e8000018 got=6342210c exp=3e8ea72c
+[910925000] OPEN-ITEM(2): ARCH: rdata is not legal memory content addr=00000000e8000018 got=6342210c
+[910935000] OPEN-ITEM(2): rdata mismatch addr=00000000e800001c got=53f0c1f8 exp=af682ccd
+[910935000] OPEN-ITEM(2): ARCH: rdata is not legal memory content addr=00000000e800001c got=53f0c1f8
+[910945000] OPEN-ITEM(2): rdata mismatch addr=00000000e8000020 got=3e8ea72c exp=2e3a702d
+[910945000] OPEN-ITEM(2): ARCH: rdata is not legal memory content addr=00000000e8000020 got=3e8ea72c
+[911165000] ---- T13 constrained random (flush, mid-refill flush, aborts, resets, streams, byte offsets)
+==================================================
+ acks=69067  refills=30581  beats=246708
+ coverage: sets=256 words=16 evictions=12796 flush bins=20/20 acks(mem0/mem1)=38583/30466
+ contract errors = 0   open-item hits = 28  (addr-change mid-refill: 0, naive ack<=req wrapper: 28)
+ *** RESULT: PASS WITH OPEN ITEMS (28) - not signed off ***
+==================================================

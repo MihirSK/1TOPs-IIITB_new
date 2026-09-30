@@ -1,0 +1,54 @@
+# run 1000ns
+[45000] ---- T1 smoke: miss then hit
+[155000] ---- T2 all 16 word offsets in a line, forward and backward
+[675000] ---- T3 memory latency modes (comb slave), poisoned rdata
+INFO: [USF-XSim-96] XSim completed. Design snapshot 'tb_icache_full_behav' loaded.
+INFO: [USF-XSim-97] XSim simulation ran for 1000ns
+launch_simulation: Time (s): cpu = 00:00:09 ; elapsed = 00:00:08 . Memory (MB): peak = 1378.359 ; gain = 0.000
+run 10 ms
+[4815000] ---- T4 index sweep (all 256 sets)
+[32975000] ---- T5 each tag bit [63:14] must be compared
+[43475000] ---- T6 direct-mapped conflict: A B A B = 4 refills
+[43885000] ---- T7 sequential streaming, 1024 words
+[59885000] ---- T8 address edges
+[60295000] ---- N7 addr[1:0] != 0: aligned word is returned, tag/index untouched
+[61035000] ---- T9 FENCE.I: basic, flush+hit same cycle, flush+miss same cycle
+[64615000] ---- N8 flush held 4 cycles with a missing request pending
+[64965000] ---- T10 FENCE.I during refill, every beat, 3 latency modes x 2 memory personalities
+[81225000] ---- N6 flush matrix: beat 0..7 / FILL / IDLE  x  cpu_req 0/1
+[90055000] ---- T11 reset in the middle of a refill (async, pin-timed)
+[90705000] ---- N1 reset clears all 256 sets (async, mid-cycle, cpu_req held high)
+[144535000] ---- N2 reset in FILL, reset during a hit stream, back-to-back resets
+[145875000] ---- N5 idle noise: cpu_req low while cpu_addr wanders (incl. cached lines)
+[149985000] ---- N3 registered memory personality (ack <= req & !ack), poisoned rdata
+[150005000] ---- T1 smoke: miss then hit
+[150195000] ---- T2 all 16 word offsets in a line, forward and backward
+[150875000] ---- T6 direct-mapped conflict: A B A B = 4 refills
+[151625000] ---- T1 smoke: miss then hit
+[151815000] ---- T2 all 16 word offsets in a line, forward and backward
+[152495000] ---- T6 direct-mapped conflict: A B A B = 4 refills
+[153245000] ---- T1 smoke: miss then hit
+[153435000] ---- T2 all 16 word offsets in a line, forward and backward
+[154115000] ---- T6 direct-mapped conflict: A B A B = 4 refills
+[154845000] ---- T7 sequential streaming, 1024 words
+[278495000] ---- N4 core-like fetch stream (req always high, ack-driven PC, stalls, branches)
+[909415000] ---- O1 OPEN ITEM: cpu_addr changes while a refill is outstanding
+[909505000] OPEN-ITEM: bad refill addr beat=3 got=00000000a1001058 exp=00000000a0000018
+[909525000] OPEN-ITEM: bad refill addr beat=4 got=00000000a1001060 exp=00000000a0000020
+[909545000] OPEN-ITEM: bad refill addr beat=5 got=00000000a1001068 exp=00000000a0000028
+[909565000] OPEN-ITEM: bad refill addr beat=6 got=00000000a1001070 exp=00000000a0000030
+[909585000] OPEN-ITEM: bad refill addr beat=7 got=00000000a1001078 exp=00000000a0000038
+[909595000] OPEN-ITEM: ack on a line the model says is NOT cached (stale/aliased) addr=00000000a1001040
+[909595000] OPEN-ITEM: rdata mismatch addr=00000000a1001040 got=45446248 exp=934e0f31
+[909595000] OPEN-ITEM: ARCH: rdata is not legal memory content addr=00000000a1001040 got=45446248
+[909655000] OPEN-ITEM: refill started without a preceding idle-miss request cycle
+[909655000] OPEN-ITEM: refill started for a line the model says is cached, addr=00000000a0000000
+[909815000] OPEN-ITEM: hit took 18 cycles (addr=00000000a0000000)
+[909815000] OPEN-ITEM: memory traffic on a hit (addr=00000000a0000000)
+[910885000] ---- T13 constrained random (flush, mid-refill flush, aborts, resets, streams, byte offsets)
+==================================================
+ acks=69049  refills=30580  beats=246699
+ coverage: sets=256 words=16 evictions=12795 flush bins=20/20 acks(mem0/mem1)=38583/30466
+ contract errors = 0   open-item hits = 39
+ *** RESULT: PASS WITH OPEN ITEMS (39) - not signed off ***
+==================================================

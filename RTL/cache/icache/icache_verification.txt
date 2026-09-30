@@ -1,0 +1,80 @@
+ICACHE (16KB, direct-mapped) - BRIEF REPORT   |   IIITB RISC-V 1TOPs SoC
+
+1. STATUS
+ - icache_v3 passes stand-alone verification: 0 contract errors, 0 open items,
+   all coverage closed (Verilator; xsim runs matched exactly).
+ - v3 is correct only with a memory side that follows the contract in section 4.
+ - The core will NOT work correctly with any cache that can miss until the fixes
+   in section 5 are made. This comes from reading riscv_core, not simulation.
+
+2. VERSIONS
+ v1  Flush overridden by a duplicated write block; flush lost to a refill
+     finishing on the last beat.                          -> fixed in v2
+ v2  Flush wins everywhere. Remaining bug: miss address not latched. If cpu_addr
+     changes or cpu_req drops mid-refill, the wrong line is fetched and
+     installed (39 testbench hits). Old TB called this a "known issue" and
+     still printed PASSED.                                -> fixed in v3
+ v3  refill_base latched at IDLE->FETCH; mem_addr, index and tag at fill come
+     from it. Three hunks vs v2. Address may change mid-refill; 0 hits.
+
+3. VERIFICATION (tb_icache_full.sv)
+ Self-checking, no DUT internals, shadow model + memory epochs, mem_rdata
+ poisoned when mem_ack is low, coverage holes fail the run.
+ Tests: T1-T11 smoke, offsets, latency modes, all 256 sets, every tag bit,
+   thrash, streaming, address edges, FENCE.I basic/mid-refill, reset mid-refill.
+   N1-N8 reset over all sets, reset in FILL/hit stream, registered memory,
+   core-like fetch stream, idle noise, flush matrix (20 bins), byte offsets,
+   held flush. O1 address change mid-refill (v2: 39 hits, v3: 0).
+   O2 informational check for a bad wrapper. T13: 30000 random operations.
+ Mutation test (9 injected bugs, Verilator): new TB caught 9/9, old TB 6/9.
+   Old TB missed: reset leaving a set valid, data captured before ack,
+   FSM state not reset.
+ Results:  v2 -> PASS WITH OPEN ITEMS (39), not signed off
+           v3 -> PASS (O2 info line shows 28 hits, expected)
+
+4. MEMORY-SIDE CONTRACT (imem_wrapper.sv, checked with v3: 0 errors)
+ 1. mem_req held until mem_ack; cache moves mem_addr on the ack edge.
+ 2. mem_rdata valid in the ack cycle and belongs to that cycle's mem_addr.
+ 3. mem_ack never high without mem_req.
+ 4. One idle cycle between acks for a registered slave (or combinational ack).
+ A plain "ack <= req; rdata <= mem[addr]" wrapper breaks rule 4: every word
+ arrives one beat late. Reference wrapper: 1 beat / 2 cycles (16 cycles/line);
+ BRAM dout must hold its value while enable is low.
+
+5. CORE FIXES (proposed, NOT simulated; adapt signal names)
+ P1 Lost redirect: pc_reg updates only when !pc_stall, so a branch/trap/mret
+    pulse during a miss is dropped.
+    Fix C1 (needs v3):  redirect = trap_valid | is_mret | is_sret |
+                                   ex_mem_branch_taken;
+                        if (redirect || !pc_stall) pc_reg <= pc_next;
+ P2 Duplicate dispatch: IF/ID keeps its instruction during a miss while ID/EX
+    reloads it every cycle.
+    Fix C2: in the IF/ID register, when !stall_id: if imem_ack load as before,
+            else load NOP with if_id_valid = 0. Check that stores, CSR and
+            register writes downstream are gated by id_ex_valid.
+ P3 FENCE.I is a NOP and flush is not wired.
+    Fix C3: decode fence_i = (funct3 == 3'b001); treat it as a jump to pc+4
+            through the branch redirect path; pulse icache flush in the same
+            cycle. Drain any write buffer/D-cache first if one is added.
+ P4 imem_err has no source: tie to 1'b0 until a bus-error path exists.
+ P5 Fetch address is virtual (pc_reg, no MMU in fetch path): decide virtual vs
+    physical before enabling Sv39 for fetch.
+
+6. CORE-LEVEL TESTS (not yet written; run with v3 + wrapper, and with
+   zero-latency memory; results must match)
+ C-T1 200x addi x1,x1,1 across line boundaries -> x1 = 200 (duplicate dispatch)
+ C-T2 store count across a boundary        C-T3 branch resolved during a miss
+ C-T4 jal/jalr into an uncached line       C-T5 trap at start of uncached line
+ C-T6 mret/sret to uncached target         C-T7 load-use at first word of a line
+ C-T8 FENCE.I with self-modified code      C-T9 back-to-back branches
+ C-T10 random program vs golden model / riscv-tests rv64ui-p-*
+ Run C-T1 and C-T3 first: they confirm or refute P1 and P2.
+
+7. RUN AND LIMITS
+ Vivado: icache_v3.sv = Design Source, tb_icache_full.sv = Simulation Source,
+ top tb_icache_full, Run All (-d STRICT_OPEN makes open items fail).
+ Expect v3: contract errors = 0, open-item hits = 0, RESULT: PASS.
+ Not done: whole-core simulation; mutation matrix is Verilator only and a
+ sample, not proof; only the 64B x 256 x 1-way configuration is covered.
+
+FILES: icache_v3.sv, tb_icache_full.sv, imem_wrapper.sv, tb_wrapper_check.sv

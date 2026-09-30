@@ -1,0 +1,111 @@
+D-CACHE (16KB, direct-mapped, write-back/write-allocate) - BRIEF REPORT
+IIITB RISC-V 1TOPs SoC          Files: dcache_v2.sv, tb_dcache_full.sv
+
+1. STATUS
+ - dcache v1 (your file) FAILS functional verification: 5 distinct bugs (sec. 2).
+ - dcache v2 passes: 0 contract errors, 0 open items, all coverage closed
+   (Verilator 5.020; not yet run in xsim - see sec. 7).
+ - The CORE does not use the D-cache correctly today (sec. 5, from reading
+   riscv_core, not simulation): the MEM stage is not stalled on a miss.
+
+2. BUGS IN v1 AND FIXES IN v2
+ F1 Miss address not latched. Set index, tag and refill/evict address come
+    from the live cpu_addr. If it changes or cpu_req drops during a refill or
+    write-back, a wrong line is written to memory or installed.
+    v2: m_idx/m_tag latched when the miss is detected, used for evict, refill
+    and commit. (Same fix as icache v3.)
+ F2 Store lost at a flush. A hit store in the same cycle as a flush pulse was
+    acked but not written (flush has priority in the FSM, ack does not).
+    v2: no ack for a hit while a flush starts/is pending; the request waits.
+ F3 Flush pulse lost when busy. flush is only looked at in IDLE; a pulse during
+    refill/write-back/AMO is dropped, dirty lines stay unflushed.
+    v2: flush_pend latches the pulse, serviced when the FSM is idle.
+ F4 AMO incoherent with the cache. AMO bypasses the cache, but a cached copy
+    stays: a dirty line makes the AMO read stale memory, a later normal read
+    hits stale data after an AMO write, and the dirty line later overwrites the
+    AMO result.
+    v2: AMO to a cached line: dirty -> write back then AMO, clean -> invalidate
+    then AMO. AMO to an uncached line: unchanged (1 beat, no allocation).
+ F5 AMO can hang / ack without request. mem_req = cpu_req during the AMO; if
+    cpu_req drops, the slave never acks and the FSM stays in ST_AMO; the AMO
+    ack was not gated by cpu_req.
+    v2: AMO request latched, mem_req held until mem_ack, ack requires cpu_req.
+ Unchanged by design: flush = write back AND invalidate everything; tag =
+ addr[63:14]; addr[2:0] ignored (strobes select bytes); hit ack combinational;
+ cpu_err tied 0; no completion output for flush (requests just wait).
+
+3. TESTBENCH (tb_dcache_full.sv) - same style as tb_icache_full
+ Self-checking, no DUT internals, poisoned mem_rdata when !mem_ack, two memory
+ personalities (comb ack / registered ack with gap) x 3 latency modes,
+ coverage holes fail the run. Two models: "arch" (what the CPU must see) and
+ "mem" (updated only by beats the DUT sends).
+ Checks: every read (also AMO) equals arch; every write-back beat carries the
+ CPU-visible data of its own address; 8-beat ascending aligned refill/evict
+ sequences to the right line; per-request traffic (hit = 1 cycle, no beats;
+ miss = 8 beats, +8 write-back if dirty); after each flush mem == arch; ack
+ without req, X/Z, cpu_err, activity in reset.
+ Tests: D1 smoke, D2 dwords/byte offsets, D3 byte strobes (every lane, 300
+ random masks), D4 write-allocate, D5 dirty/clean eviction, D6 all 256 sets,
+ D7 every tag bit, D8 dirty ping-pong, D9 streaming, D10 address edges, D11 AMO
+ (uncached/clean/dirty, read/write, byte offsets), D12-D13 flush (all sets
+ dirty, both memories), D14 store/read/miss in the flush cycle, D15 flush pulse
+ in every write-back beat, refill beat, AMO, second pulse during a flush,
+ D16-D17 reset (all 256 sets, dirty data dropped, in write-back/refill/AMO/
+ flush), D18 idle noise, D19-D20 registered memory + latency modes, D21
+ core-like stream, O1 request changes/drops while busy (6 cases), D22 6000
+ random operations.
+ Coverage (counters, hole = failure): 256 sets, 8 dwords, 8 single-lane stores,
+ dirty and clean eviction, 6 AMO bins, 24 flush-state bins + idle + AMO.
+
+4. RESULTS (Verilator)
+ v1 original : FAIL (26597 contract errors, errors cascade after the first)
+ v2          : PASS  (acks ~28600, ~165k read beats, ~85k write beats)
+ Fix removed from v2 (reverse mutants), each must be caught:
+   F1 removed -> PASS WITH OPEN ITEMS (29)  [FAIL with -d STRICT_OPEN]
+   F2 removed -> FAIL (92)   F3 removed -> FAIL   F4 removed -> FAIL
+   F5 removed -> FAIL
+ Seven extra injected bugs, all FAIL: byte strobe ignored, dirty bit not set,
+   write-back uses new tag, flush skips set 255, refill beat 3 duplicated,
+   reset keeps set 5, FSM state not reset.
+ (Mutant runs are a sample, not proof.)
+
+5. CORE FINDINGS FOR THE D-CACHE (riscv_core.sv; proposed, NOT simulated)
+ P1 EX/MEM is never stalled on dmem_ack. It updates every cycle; only MEM/WB
+    holds (!dmem_req || dmem_ack). During a miss dmem_addr/dmem_req change one
+    cycle later, so the missing load/store is lost, and the eventual ack
+    completes whatever request is presented then. No D-cache can fix this.
+    Fix: mem_stall = dmem_req & ~dmem_ack; hold PC, IF/ID, ID/EX, EX/MEM while
+    it is high; insert a bubble into MEM/WB (mem_wb_valid <= 0) instead of
+    re-latching. Add mem_stall to pc_stall and to the stall inputs of the
+    hazard unit.
+ P2 cpu_amo and flush have no source in the core (dcache instance is outside the
+    files I have). FENCE decodes as a NOP; AMO opcodes decode but no
+    dmem_amo output exists. Wire: FENCE -> dcache flush pulse (one cycle,
+    after older stores have passed MEM), AMO -> cpu_amo.
+ P3 The cache does one pass-through transaction per AMO. Read-modify-write
+    atomicity must come from the core/bus; not covered here.
+ P4 dmem_err has no source (cpu_err is tied to 0).
+ Core-level tests still to write: back-to-back loads/stores across a miss,
+ store then load same address (hit/miss/evicted), load-use after a miss,
+ AMO after store to same line, FENCE with dirty lines, random program vs a
+ golden model.
+
+6. ASSUMPTIONS (change TB constants if the intended behaviour differs)
+ - flush is a 1-cycle pulse, no busy output; it writes back and invalidates.
+ - A store in the flush cycle completes AFTER the flush (not before).
+ - Reset discards dirty data.
+ - AMO to a cached line is written back (if dirty) and invalidated; the TB
+   checks exact beat counts for this policy (op_chk in the driver).
+ - Memory contract as for the icache: mem_req held until mem_ack, beat address
+   advances on the ack edge, rdata valid in the ack cycle, gap between acks
+   on registered slaves (imem_wrapper.sv works for the read side; write beats
+   need the same rule: data/strobe accepted in the ack cycle).
+
+7. RUN
+ Vivado: dcache_v2.sv = Design Source, tb_dcache_full.sv = Simulation Source,
+ top tb_dcache_full, Run All (about 8.4 ms simulated). -d STRICT_OPEN makes
+ open items fail. Expect on v2:
+   contract errors = 0   open-item hits = 0
+   *** RESULT: PASS ***
+ Limits: not run in xsim yet; single configuration (64B x 256 x 1 way);
+ no timing/synthesis checks; core integration untested.

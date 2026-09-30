@@ -1,0 +1,57 @@
+The testbench output:
+
+[45000] ---- T1 smoke: miss then hit
+[155000] ---- T2 all 16 word offsets in a line
+[675000] ---- T3 memory latency modes
+INFO: [USF-XSim-96] XSim completed. Design snapshot 'tb_icache_behav' loaded.
+INFO: [USF-XSim-97] XSim simulation ran for 1000ns
+launch_simulation: Time (s): cpu = 00:00:03 ; elapsed = 00:00:10 . Memory (MB): peak = 1231.648 ; gain = 0.000
+run 10 ms
+[5115000] ---- T4 index sweep (all 256 sets)
+[33275000] ---- T5 each tag bit [63:14] must be compared
+[43775000] ---- T6 direct-mapped conflict: A B A B = 4 refills
+[44185000] ---- T7 sequential streaming, 1024 words
+[60185000] ---- T8 address edges
+[60595000] ---- T9 FENCE.I: basic, flush+hit same cycle, flush+miss same cycle
+[64175000] ---- T10 FENCE.I during refill, every beat, two latency modes
+[68055000] ---- T11 reset in the middle of a refill
+[68705000] ---- T12 (known issue) cpu_addr changes mid-refill
+[68795000] KNOWN-ISSUE: bad refill addr beat=3 got=00000000a0001058 exp=00000000a0000018
+[68815000] KNOWN-ISSUE: bad refill addr beat=4 got=00000000a0001060 exp=00000000a0000020
+[68835000] KNOWN-ISSUE: bad refill addr beat=5 got=00000000a0001068 exp=00000000a0000028
+[68855000] KNOWN-ISSUE: bad refill addr beat=6 got=00000000a0001070 exp=00000000a0000030
+[68875000] KNOWN-ISSUE: bad refill addr beat=7 got=00000000a0001078 exp=00000000a0000038
+[68885000] KNOWN-ISSUE: HIT on line model says is NOT cached (stale/aliased) addr=00000000a0001040
+[68885000] KNOWN-ISSUE: rdata mismatch addr=00000000a0001040 got=6b1d1a86 exp=833ea216
+[68955000] ---- T14 flush in FILL state, flush in FETCH with cpu_req low
+[69465000] ---- T13 constrained random
+==================================================
+ acks=19545  refills=15008  beats=120126
+ coverage: acc=100.0%  flush=95.8%
+ errors=0   known-issue hits=7
+ *** TEST PASSED ***
+==================================================
+
+
+1) Failure of the flush in the final beat. The "write completed line" block at the bottom of the always block overrides the flush and re-sets valid_arr, so the next fetch hits stale data.
+
+2) Bits used for tag acc header is 26 but we actually use 50 bits. 
+
+
+Tests:
+
+Test	What it covers
+T1–T3	Smoke, all 16 word offsets, latency modes
+T4	Sweep of all 256 sets
+T5	Each of the 50 tag bits flipped individually, which must miss
+T6	A-B-A-B conflict thrash
+T7	1024-word streaming across lines
+T8	Address edges
+T9	FENCE.I basics, including flush together with a hit and with a miss
+T10	FENCE.I at every refill beat, at two latencies
+T11	Reset mid-refill
+T12	cpu_addr changing mid-refill (known-issue mode)
+T13	20k constrained-random operations with random flushes, idles, and aborted fetches
+
+
+
