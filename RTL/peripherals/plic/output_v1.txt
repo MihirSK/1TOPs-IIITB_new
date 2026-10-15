@@ -1,0 +1,130 @@
+[50000] S64C2 ---- P1 reset defaults: every register reads 0, eip low
+[50000] S32C3 ---- P1 reset defaults: every register reads 0, eip low
+[865000] S32C3 ERROR: read data 0000000X, expected 00000000
+[870000] S32C3 ERROR: enable[1][0] after reset = 0000000X
+[925000] S32C3 ERROR: read data 0000000X, expected 00000000
+[930000] S32C3 ERROR: enable[2][0] after reset = 0000000X
+[970000] S32C3 ---- P2 priority registers: 3 bits, per source, source 0 and out-of-range sources do not exist
+INFO: [USF-XSim-96] XSim completed. Design snapshot 'tb_plic_full_behav' loaded.
+INFO: [USF-XSim-97] XSim simulation ran for 1000ns
+launch_simulation: Time (s): cpu = 00:00:02 ; elapsed = 00:00:09 . Memory (MB): peak = 1099.426 ; gain = 0.402
+run all
+[1610000] S64C2 ---- P2 priority registers: 3 bits, per source, source 0 and out-of-range sources do not exist
+[13405000] S32C3 ERROR: read data 00000007, expected 00000000
+[13410000] S32C3 ERROR: priority[0] read 00000007, expected 0
+[13465000] S32C3 ERROR: read data 0000000X, expected 00000000
+[13470000] S32C3 ERROR: priority[32] (out of range) read 0000000X
+[13505000] S32C3 ERROR: read data 0000000X, expected 00000000
+[13510000] S32C3 ERROR: priority[1023] read 0000000X
+[14270000] S32C3 ---- P3 enable registers: per context and word, bit 0 / bits beyond NSOURCES read 0, contexts independent
+[14305000] S32C3 ERROR: read data 00000007, expected fffffffe
+[14310000] S32C3 ERROR: enable[0][0] = 00000007 after writing FFFFFFFF, expected fffffffe
+[14365000] S32C3 ERROR: read data 00000001, expected 00000000
+[14370000] S32C3 ERROR: enable[0][0] walking bit 0 read 00000001
+[14485000] S32C3 ERROR: read data 00000000, expected 00000008
+[14490000] S32C3 ERROR: enable[0][0] walking bit 3 read 00000000
+[14525000] S32C3 ERROR: read data 00000000, expected 00000010
+[14530000] S32C3 ERROR: enable[0][0] walking bit 4 read 00000000
+[14565000] S32C3 ERROR: read data 00000000, expected 00000020
+[14570000] S32C3 ERROR: enable[0][0] walking bit 5 read 00000000
+[14605000] S32C3 ERROR: read data 00000000, expected 00000040
+[14610000] S32C3 ERROR: enable[0][0] walking bit 6 read 00000000
+[14645000] S32C3 ERROR: read data 00000000, expected 00000080
+[14650000] S32C3 ERROR: enable[0][0] walking bit 7 read 00000000
+[14685000] S32C3 ERROR: read data 00000000, expected 00000100
+[14690000] S32C3 ERROR: enable[0][0] walking bit 8 read 00000000
+[14725000] S32C3 ERROR: read data 00000000, expected 00000200
+[14730000] S32C3 ERROR: enable[0][0] walking bit 9 read 00000000
+[14765000] S32C3 ERROR: read data 00000000, expected 00000400
+[14770000] S32C3 ERROR: enable[0][0] walking bit 10 read 00000000
+[14805000] S32C3 ERROR: read data 00000000, expected 00000800
+[14810000] S32C3 ERROR: enable[0][0] walking bit 11 read 00000000
+[14845000] S32C3 ERROR: read data 00000000, expected 00001000
+[14850000] S32C3 ERROR: enable[0][0] walking bit 12 read 00000000
+[14885000] S32C3 ERROR: read data 00000000, expected 00002000
+[14890000] S32C3 ERROR: enable[0][0] walking bit 13 read 00000000
+[14925000] S32C3 ERROR: read data 00000000, expected 00004000
+[14930000] S32C3 ERROR: enable[0][0] walking bit 14 read 00000000
+[14965000] S32C3 ERROR: read data 00000000, expected 00008000
+[14970000] S32C3 ERROR: enable[0][0] walking bit 15 read 00000000
+[18670000] S32C3 ---- P4 threshold registers: 3 bits per context, independent
+[19970000] S32C3 ---- P5 pending: set by a pulse on every source (also disabled / priority 0), read-only, source 0 ignored
+[26240000] S32C3 ---- P6 eip: pending & enabled & priority > threshold, per context; priority 0 never fires
+[26845000] S64C2 ERROR: read data 00000007, expected 00000000
+[26850000] S64C2 ERROR: priority[0] read 00000007, expected 0
+[26905000] S64C2 ERROR: read data 0000000X, expected 00000000
+[26910000] S64C2 ERROR: priority[64] (out of range) read 0000000X
+[26945000] S64C2 ERROR: read data 0000000X, expected 00000000
+[26950000] S64C2 ERROR: priority[1023] read 0000000X
+[28350000] S64C2 ---- P3 enable registers: per context and word, bit 0 / bits beyond NSOURCES read 0, contexts independent
+[28385000] S64C2 ERROR: read data 00000007, expected fffffffe
+[28390000] S64C2 ERROR: enable[0][0] = 00000007 after writing FFFFFFFF, expected fffffffe
+[28445000] S64C2 ERROR: read data 00000001, expected 00000000
+[28450000] S64C2 ERROR: enable[0][0] walking bit 0 read 00000001
+[28490000] S32C3 ---- P7 claim: highest priority first, ties to the lowest id, clears pending, empty claim returns 0
+[28565000] S64C2 ERROR: read data 00000000, expected 00000008
+[28570000] S64C2 ERROR: enable[0][0] walking bit 3 read 00000000
+[28605000] S64C2 ERROR: read data 00000000, expected 00000010
+[28610000] S64C2 ERROR: enable[0][0] walking bit 4 read 00000000
+[28645000] S64C2 ERROR: read data 00000000, expected 00000020
+[28650000] S64C2 ERROR: enable[0][0] walking bit 5 read 00000000
+[28685000] S64C2 ERROR: read data 00000000, expected 00000040
+[28690000] S64C2 ERROR: enable[0][0] walking bit 6 read 00000000
+[28725000] S64C2 ERROR: read data 00000000, expected 00000080
+[28730000] S64C2 ERROR: enable[0][0] walking bit 7 read 00000000
+[28765000] S64C2 ERROR: read data 00000000, expected 00000100
+[28770000] S64C2 ERROR: enable[0][0] walking bit 8 read 00000000
+[28805000] S64C2 ERROR: read data 00000000, expected 00000200
+[28810000] S64C2 ERROR: enable[0][0] walking bit 9 read 00000000
+[28845000] S64C2 ERROR: read data 00000000, expected 00000400
+[28850000] S64C2 ERROR: enable[0][0] walking bit 10 read 00000000
+[28885000] S64C2 ERROR: read data 00000000, expected 00000800
+[28890000] S64C2 ERROR: enable[0][0] walking bit 11 read 00000000
+[28925000] S64C2 ERROR: read data 00000000, expected 00001000
+[28930000] S64C2 ERROR: enable[0][0] walking bit 12 read 00000000
+[28965000] S64C2 ERROR: read data 00000000, expected 00002000
+[28970000] S64C2 ERROR: enable[0][0] walking bit 13 read 00000000
+[29005000] S64C2 ERROR: read data 00000000, expected 00004000
+[29010000] S64C2 ERROR: enable[0][0] walking bit 14 read 00000000
+[29045000] S64C2 ERROR: read data 00000000, expected 00008000
+[29050000] S64C2 ERROR: enable[0][0] walking bit 15 read 00000000
+[29085000] S64C2 ERROR: read data 00000000, expected 00010000
+[29090000] S64C2 ERROR: enable[0][0] walking bit 16 read 00000000
+[29125000] S64C2 ERROR: read data 00000000, expected 00020000
+[29130000] S64C2 ERROR: enable[0][0] walking bit 17 read 00000000
+[34190000] S64C2 ---- P4 threshold registers: 3 bits per context, independent
+[35070000] S64C2 ---- P5 pending: set by a pulse on every source (also disabled / priority 0), read-only, source 0 ignored
+[36010000] S32C3 ---- P8 unmapped / reserved / out-of-range addresses read 0 (never stale data), writes ignored
+[36950000] S32C3 ---- P9 reset with configured and pending state
+[38080000] S32C3 ---- P10 constrained random (registers, pulses, level sources, claim/complete, unmapped)
+[48700000] S64C2 ---- P6 eip: pending & enabled & priority > threshold, per context; priority 0 never fires
+[50300000] S64C2 ---- P7 claim: highest priority first, ties to the lowest id, clears pending, empty claim returns 0
+[64220000] S64C2 ---- P8 unmapped / reserved / out-of-range addresses read 0 (never stale data), writes ignored
+[65160000] S64C2 ---- P9 reset with configured and pending state
+[66110000] S64C2 ---- P10 constrained random (registers, pulses, level sources, claim/complete, unmapped)
+[96200000] S32C3 ---- O1 OPEN ITEM: master holds req until ack (a claim must be executed once)
+[96265000] S32C3 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[96275000] S32C3 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[96285000] S32C3 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[96295000] S32C3 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[96305000] S32C3 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[96315000] S32C3 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[96325000] S32C3 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[96335000] S32C3 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[96740000] S32C3 ---- O2 OPEN ITEM: gateway: a source still asserted at complete pends again; pulses while in flight ignored
+ S32C3 coverage: 31 sources claimed, 8 priorities, 8 thresholds, 3 contexts, unmapped reads=142, completes valid/ignored=146/202
+[133430000] S64C2 ---- O1 OPEN ITEM: master holds req until ack (a claim must be executed once)
+[133495000] S64C2 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[133505000] S64C2 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[133515000] S64C2 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[133525000] S64C2 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[133535000] S64C2 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[133545000] S64C2 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[133555000] S64C2 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[133565000] S64C2 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[133970000] S64C2 ---- O2 OPEN ITEM: gateway: a source still asserted at complete pends again; pulses while in flight ignored
+ S64C2 coverage: 63 sources claimed, 8 priorities, 8 thresholds, 2 contexts, unmapped reads=134, completes valid/ignored=118/259
+==================================================
+ contract errors = 6894 (S64C2 3931, S32C3 2963)   open-item hits = 100  (bus handshake / gateway semantics)
+ *** RESULT: FAIL ***
+==================================================

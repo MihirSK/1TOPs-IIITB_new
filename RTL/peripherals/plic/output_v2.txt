@@ -1,0 +1,34 @@
+[50000] S64C2 ---- P1 reset defaults: every register reads 0, eip low
+[50000] S32C3 ---- P1 reset defaults: every register reads 0, eip low
+[970000] S32C3 ---- P2 priority registers: 3 bits, per source, source 0 and out-of-range sources do not exist
+INFO: [USF-XSim-96] XSim completed. Design snapshot 'tb_plic_full_behav' loaded.
+INFO: [USF-XSim-97] XSim simulation ran for 1000ns
+launch_simulation: Time (s): cpu = 00:00:01 ; elapsed = 00:00:08 . Memory (MB): peak = 1099.426 ; gain = 0.000
+run all
+[1610000] S64C2 ---- P2 priority registers: 3 bits, per source, source 0 and out-of-range sources do not exist
+[14270000] S32C3 ---- P3 enable registers: per context and word, bit 0 / bits beyond NSOURCES read 0, contexts independent
+[18670000] S32C3 ---- P4 threshold registers: 3 bits per context, independent
+[19970000] S32C3 ---- P5 pending: set by a pulse on every source (also disabled / priority 0), read-only, source 0 ignored
+[26240000] S32C3 ---- P6 eip: pending & enabled & priority > threshold, per context; priority 0 never fires
+[28350000] S64C2 ---- P3 enable registers: per context and word, bit 0 / bits beyond NSOURCES read 0, contexts independent
+[28490000] S32C3 ---- P7 claim: highest priority first, ties to the lowest id, clears pending, empty claim returns 0
+[34190000] S64C2 ---- P4 threshold registers: 3 bits per context, independent
+[35070000] S64C2 ---- P5 pending: set by a pulse on every source (also disabled / priority 0), read-only, source 0 ignored
+[36010000] S32C3 ---- P8 unmapped / reserved / out-of-range addresses read 0 (never stale data), writes ignored
+[36950000] S32C3 ---- P9 reset with configured and pending state
+[38080000] S32C3 ---- P10 constrained random (registers, pulses, level sources, claim/complete, unmapped)
+[48700000] S64C2 ---- P6 eip: pending & enabled & priority > threshold, per context; priority 0 never fires
+[50300000] S64C2 ---- P7 claim: highest priority first, ties to the lowest id, clears pending, empty claim returns 0
+[64220000] S64C2 ---- P8 unmapped / reserved / out-of-range addresses read 0 (never stale data), writes ignored
+[65160000] S64C2 ---- P9 reset with configured and pending state
+[66110000] S64C2 ---- P10 constrained random (registers, pulses, level sources, claim/complete, unmapped)
+[114360000] S32C3 ---- O1 OPEN ITEM: master holds req until ack (a claim must be executed once)
+[114900000] S32C3 ---- O2 OPEN ITEM: gateway: a source still asserted at complete pends again; pulses while in flight ignored
+ S32C3 coverage: 31 sources claimed, 8 priorities, 8 thresholds, 3 contexts, unmapped reads=131, completes valid/ignored=145/26
+[159240000] S64C2 ---- O1 OPEN ITEM: master holds req until ack (a claim must be executed once)
+[159780000] S64C2 ---- O2 OPEN ITEM: gateway: a source still asserted at complete pends again; pulses while in flight ignored
+ S64C2 coverage: 63 sources claimed, 8 priorities, 8 thresholds, 2 contexts, unmapped reads=135, completes valid/ignored=240/41
+==================================================
+ contract errors = 0 (S64C2 0, S32C3 0)   open-item hits = 0  (bus handshake / gateway semantics)
+ *** RESULT: PASS ***
+==================================================

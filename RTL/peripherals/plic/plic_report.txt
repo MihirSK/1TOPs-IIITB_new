@@ -1,0 +1,84 @@
+PLIC - BRIEF REPORT              Files: plic_v2.sv, tb_plic_full.sv
+
+1. STATUS
+ - plic v1 (your file) FAILS functional verification: 6 defects (sec. 2); two of
+   them make the block unusable (no interrupt can ever pend, most registers
+   unreachable).
+ - plic v2 passes: 0 contract errors, 0 open items, all coverage closed, for
+   NSOURCES=64/NCONTEXTS=2 (the SoC) and NSOURCES=32/NCONTEXTS=3 (Verilator).
+   Not yet run in xsim - see sec. 6. No 4-state check was possible here (Icarus
+   cannot handle variable indexes into a 2-D packed array); xsim is that check.
+
+2. DEFECTS IN v1 AND FIXES IN v2
+ P1 Edge detector: irq_sync and irq_sync_d were both loaded from irq_sources, so
+    irq_edge = irq_sync & ~irq_sync_d was always 0 and pending never became 1.
+    v2: 2-flop synchroniser + level gateway with claim/complete.
+ P2 Address decode: the priority branch (addr[27:22]==0) matched every address
+    below 0x400000, so pending (0x1000), enable (0x2000) and threshold/claim
+    (0x200000) were unreachable; their own decode constants were also wrong.
+    v2: each region decoded correctly.
+ P3 Claim selection: the "highest priority" loop kept overwriting, so the LOWEST
+    numbered eligible source won and priority was ignored.
+    v2: highest priority, ties to the lowest id.
+ P4 No bounds checks: out-of-range priority source / enable word / pending word /
+    context returned X, and unmapped addresses returned the previous read data.
+    v2: they read 0, writes are ignored.
+ P5 Source 0 does not exist, but priority[0] and enable bit 0 were writable.
+    v2: they read 0.
+ P6 A claim read has a side effect; a master that holds req until ack executed it
+    twice and silently swallowed a second interrupt.
+    v2: accept once (req && !ack), ack one cycle wide.
+    [OPEN ITEM: only matters if your bus holds req]
+
+3. DESIGN DECISION (open item O2): level gateway
+ v2 treats sources as LEVEL: an asserted source sets pending (also a short pulse);
+ claim clears pending and marks the source "in flight" (ignored until completed);
+ complete = write of the id to the claim register (ignored if the source is not
+ enabled for that context); a source still asserted at complete pends again.
+ The contract tests only use short pulses, or levels dropped before the complete,
+ so an edge-only gateway also passes them; the level-specific behaviour is O2 and
+ is reported as OPEN ITEMS. -define STRICT_OPEN makes them fail.
+
+4. TESTBENCH (tb_plic_full.sv)
+ Pin-level, no dut.* references. Two configurations run together. Reference model
+ of priority / threshold / enable / pending / in-flight updated at every edge
+ from the bus and irq_sources. Every cycle (sources stable for 7 cycles; the
+ synchroniser latency is unspecified): eip per context == model; ack one cycle
+ after an accepted request, never otherwise; read data == model (unmapped 0).
+ Tests: P1 reset defaults, P2 priority (all sources, all 8 values, source 0 and
+ out of range), P3 enable (walking bits, masks, contexts independent, out of
+ range), P4 threshold, P5 pending (pulse on every source, read-only, source 0,
+ groups), P6 eip (threshold edge cases, priority 0, enable, two contexts), P7
+ claim order (priority, tie to lowest id, empty claim, two contexts, every
+ source claimed), P8 unmapped addresses (after a nonzero read), P9 reset with
+ pending/in-flight state, P10 2500 random operations (with level sources), O1
+ master that holds req, O2 gateway semantics.
+ Coverage (a hole fails): every source becomes pending and is claimed, all 8
+ priorities and thresholds, every enable word per context, eip 0 and 1 per
+ context, unmapped reads, valid and ignored completes, reset, hold, gateway.
+
+5. RESULTS (Verilator)
+ v1 original : FAIL (6305 contract errors, 100 open items)
+ v2          : PASS (both configurations)
+ Each fix removed alone: no gateway, wide priority decode, lowest-id wins, tie to
+   highest id, stale rdata, priority[0] writable, enable bit 0 writable all FAIL;
+   edge gateway -> PASS WITH OPEN ITEMS (42); ack on every request -> PASS WITH
+   OPEN ITEMS (70); complete without enable check -> PASS WITH OPEN ITEMS (8)
+   [all three FAIL with -d STRICT_OPEN].
+ Injected bugs, all FAIL: threshold >= instead of >, claim does not clear
+   pending, eip ignores enable, shared enable across contexts, in-flight not
+   tracked, threshold bits swapped.
+ Not caught in Verilator: removing the priority-source bound check. In 2-state
+   Verilator an out-of-range packed index reads 0, so that mutant behaves like
+   correct code; in xsim it should read X and be caught (not confirmed).
+ (Mutant runs are a sample, not proof.)
+
+6. RUN
+ Vivado: plic_v2.sv = Design Source, tb_plic_full.sv = Simulation Source, top
+ tb_plic_full, Reset Behavioral Simulation, then Run + "run all" (about 165 ms
+ simulated). Expect:
+   contract errors = 0 (S64C2 0, S32C3 0)   open-item hits = 0
+   *** RESULT: PASS ***
+ Assumptions: addr is the 28-bit offset from 0x0C00_0000; 3-bit priorities and
+ thresholds; NSOURCES a multiple of 32 is the tested case; one access per two
+ cycles (a request every cycle is not supported by v2).
