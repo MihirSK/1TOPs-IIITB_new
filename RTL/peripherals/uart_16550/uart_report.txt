@@ -1,0 +1,90 @@
+UART 16550 - BRIEF REPORT       Files: uart_16550_v2.sv, tb_uart_full.sv
+
+1. STATUS
+ - uart_16550 v1 (your file) FAILS functional verification: 8 distinct defects.
+ - uart_16550 v2 passes: 0 contract errors, 0 open items, all coverage closed
+   (Verilator 5.020; not yet run in xsim - see sec. 6).
+ - Not checked here: SoC integration (bus bridge, interrupt wiring, Linux DT).
+
+2. DEFECTS IN v1 AND FIXES IN v2
+ U1 Bus handshake. ack <= req and every side effect runs on each cycle req is
+    high. A synchronous master that holds req until it sees ack makes req high
+    for two edges: THR write pushes twice, RBR read pops twice, ack lasts two
+    cycles. v2: accept once (req && !ack), ack one cycle wide.
+    [reported as OPEN ITEM: it only bites if your bus holds req; a one-cycle
+    req pulse works in v1]
+ U2 Baud rate. Tick period was DIV+1 clocks, so every bit is 16 clocks too long
+    (1.9% slow at the default divisor 54, 100% slow at divisor 1). v2: DIV.
+ U3 TX timing. The start bit appeared one whole bit late and the stop bit was
+    cut when busy cleared. v2: byte loaded on a baud tick, start bit at once,
+    every bit exactly 16 ticks, busy until the stop bit is complete.
+ U4 LSR.TEMT was just "FIFO empty": set while the last byte was still being
+    shifted out (Linux uses TEMT before closing the port / changing the baud).
+    v2: TEMT = FIFO empty AND shifter idle.
+ U5 RX sampling. The receiver sampled every bit at its END (bit boundary), so
+    it only worked with a perfect sender clock. v2: verify the start bit at its
+    middle, then sample every bit at its middle (tolerates +-2%, tested).
+ U6 FIFO counters. Push and pop in the same cycle wrote the count twice (last
+    assignment wins): a byte was lost. Seen on THR write vs FIFO pop and RBR
+    read vs RX push. v2: one update with both.
+ U7 FCR ignored. Linux clears the FIFOs through FCR[1]/FCR[2]; v1 stored the
+    value and did nothing. v2 implements both clear bits.
+ U8 Scratch register (address 7) was commented as scratch but always read 0.
+    v2: real read/write register.
+ U9 (robustness) after reset or a bad stop bit the receiver could see the tail
+    of a frame as a new start bit. v2 waits for the line to be high first.
+ NOT implemented (unchanged, informational): parity / word length / stop-bit
+ select (always 8N1), overrun / framing / break flags in LSR, interrupt output
+ (IER/IIR exist but there is no irq pin), modem lines, MCR loopback.
+
+3. TESTBENCH (tb_uart_full.sv) - same style as the cache testbenches
+ Pin-level only (no dut.* references). TX monitor decodes every frame, checks
+ each edge lies on a bit boundary (bit time = 16 x divisor, exact), start/data/
+ stop levels, minimum frame spacing and compares each byte with the bytes the
+ CPU wrote. A separate RX driver process sends frames (exact, +-2%, back-to-
+ back, glitches). Bus monitor: ack one cycle after an accepted request, one
+ cycle wide, never without a request, no X. LSR rules (TEMT/THRE/DR).
+ Tests: U1 reset defaults, U2 registers/DLAB aliasing/read-only regs, U3 TX
+ baud+frame for divisors 1,2,3,4,5,8,16,54,100 and all data patterns, U4 TX FIFO
+ order and overflow (exactly 17 bytes: 16 FIFO + shifter), U5 LSR while
+ sending, U6 THR write landing on the FIFO pop (sweep of 50 cycle offsets), U7
+ FCR TX clear, U8 RX exact timing, U9 RX back-to-back, U10 RX +-2%, U11 RX FIFO
+ 16 bytes + drop of the 17th, U12 glitch rejection, U13 RBR read landing on
+ the RX push (sweep of 45 offsets), U14 FCR RX clear, U15 reset in the middle
+ of TX and RX, U16 2500 random operations, O1 master that holds req until ack.
+ Coverage (a hole is a failure): all 16 register read/write bins, every data
+ bit as 0 and 1 on TX and RX, 9 divisors, overflow, collisions, FCR clears,
+ tolerance both ways, glitch, resets.
+
+4. RESULTS (Verilator)
+ v1 original : FAIL  (2276 contract errors + 22 open items; first error is the
+               scratch register, then bit timing / decode errors)
+ v2          : PASS
+ Each v2 fix removed alone, all caught:
+   U1 removed -> PASS WITH OPEN ITEMS (16)  [FAIL with -d STRICT_OPEN]
+   U2 baud+1 -> FAIL   U4 TEMT -> FAIL   U5 late RX sample -> FAIL
+   U6 TX count race -> FAIL   U6 RX count race -> FAIL (only the one sweep trial
+   where the read hits the push cycle)   U7 TX/RX FCR ignored -> FAIL
+   U8 scratch reads 0 -> FAIL
+ Injected bugs, all FAIL: MSB-first TX, no false-start check, TX FIFO depth 15,
+ THR write with DLAB=1 pushes a byte, RBR read with DLAB=1 pops.
+ (Mutant runs are a sample, not proof.)
+
+5. ASSUMPTIONS (change TB constants if your intent differs)
+ - Bus: one transaction at a time; the master drops req once ack was seen.
+   Main suite uses a one-cycle req pulse; O1 uses a held req.
+ - Bit time = 16 x divisor clocks, divisor 0 = default (CLK_FREQ/(16*BAUD)).
+ - Transmit FIFO 16 bytes plus the byte in the shifter; writes to a full FIFO
+   are dropped; receive FIFO 16 bytes, the 17th received byte is dropped.
+ - 8N1 only. Reset restores the default divisor and empties both FIFOs.
+ - The stop bit of a received frame is not checked (no framing error flag).
+
+6. RUN
+ Vivado: uart_16550_v2.sv = Design Source, tb_uart_full.sv = Simulation
+ Source, top tb_uart_full, Run All (about 90 ms simulated, several minutes in
+ xsim). -d STRICT_OPEN makes open items fail. Expect on v2:
+   contract errors = 0   open-item hits = 0
+   *** RESULT: PASS ***
+ followed by two INFO lines (overrun and framing flags NOT implemented).
+ Limits: not run in xsim yet; fixed 100 MHz default clock/baud parameters;
+ no timing/synthesis checks; SoC integration (register-shift, interrupt) untested.

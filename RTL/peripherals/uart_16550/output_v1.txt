@@ -1,0 +1,73 @@
+[45000] ERROR: X/Z on tx
+[45000] ERROR: X/Z on ack
+[50000] ---- U1 reset defaults and idle line
+[85000] ERROR: X/Z on tx
+[85000] ERROR: X/Z on ack
+[95000] ERROR: X/Z on tx
+[95000] ERROR: X/Z on ack
+[105000] ERROR: X/Z on tx
+[105000] ERROR: X/Z on ack
+[115000] ERROR: X/Z on tx
+[115000] ERROR: X/Z on ack
+[125000] ERROR: X/Z on tx
+[125000] ERROR: X/Z on ack
+[135000] ERROR: X/Z on tx
+[135000] ERROR: X/Z on ack
+[145000] ERROR: X/Z on tx
+[145000] ERROR: X/Z on ack
+[155000] ERROR: X/Z on tx
+[155000] ERROR: X/Z on ack
+[165000] ERROR: X/Z on tx
+[165000] ERROR: X/Z on ack
+[175000] ERROR: X/Z on tx
+[175000] ERROR: X/Z on ack
+[185000] ERROR: X/Z on tx
+[185000] ERROR: X/Z on ack
+[195000] ERROR: X/Z on tx
+[195000] ERROR: X/Z on ack
+[205000] ERROR: X/Z on tx
+[205000] ERROR: X/Z on ack
+[215000] ERROR: X/Z on tx
+[215000] ERROR: X/Z on ack
+[225000] ERROR: X/Z on tx
+[225000] ERROR: X/Z on ack
+[235000] ERROR: X/Z on tx
+[235000] ERROR: X/Z on ack
+[245000] ERROR: X/Z on tx
+[245000] ERROR: X/Z on ack
+[255000] ERROR: X/Z on tx
+[255000] ERROR: X/Z on ack
+[265000] ERROR: X/Z on tx
+[265000] ERROR: X/Z on ack
+[275000] ERROR: X/Z on tx
+[275000] ERROR: X/Z on ack
+[285000] ERROR: X/Z on tx
+[285000] ERROR: X/Z on ack
+[295000] ERROR: X/Z on tx
+[295000] ERROR: X/Z on ack
+[300000] ERROR: no ack in the cycle after the request
+[305000] ERROR: X/Z on tx
+[305000] ERROR: X/Z on ack
+[310000] ERROR: X/Z in read data of register 5
+[310000] ERROR: LSR.DR=x but 0 byte(s) are expected in the RX FIFO
+[310000] ERROR: LSR after reset = xx, expected 60
+[315000] ERROR: X/Z on tx
+[315000] ERROR: X/Z on ack
+[320000] ERROR: no ack in the cycle after the request
+[325000] ERROR: X/Z on tx
+[325000] ERROR: X/Z on ack
+[330000] ERROR: X/Z in read data of register 2
+[330000] ERROR: IIR after reset = xx, expected C1
+[335000] ERROR: X/Z on tx
+[1490000] ---- U2 register read/write, DLAB aliasing, read-only registers
+[8770000] ---- U3 TX baud rate and frame format for divisors 1..100 and the default divisor
+[1988370000] ---- U4 TX FIFO: 16 queued bytes in order, overflow keeps 16 + 1 bytes and drops the tail
+[2079750000] ---- U5 LSR THRE/TEMT while transmitting
+[2141890000] ---- U7 FCR bit 2 clears the TX FIFO
+[2175230000] ---- U8 RX exact timing for divisors 1..54, all bit patterns
+[2882730000] ---- U9 RX back-to-back frames without idle time (exact timing)
+[3063530000] ---- U10 RX with a sender that is 2% slow / 2% fast
+[3949110000] ---- U11 RX FIFO: 16 bytes in order, the 17th is dropped
+[4012210000] ---- U12 RX ignores a start-bit glitch shorter than half a bit
+[4081150000] ---- U14 FCR bit 1 clears the RX FIFO
+[4098850000] ---- U15 reset in the middle of a TX frame and of an RX frame

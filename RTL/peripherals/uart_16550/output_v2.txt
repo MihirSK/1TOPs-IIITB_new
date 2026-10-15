@@ -1,0 +1,15 @@
+run 10 ms
+[50000] ---- U1 reset defaults and idle line
+[1490000] ---- U2 register read/write, DLAB aliasing, read-only registers
+[8770000] ---- U3 TX baud rate and frame format for divisors 1..100 and the default divisor
+[997490000] ---- U4 TX FIFO: 16 queued bytes in order, overflow keeps 16 + 1 bytes and drops the tail
+[1113570000] ---- U5 LSR THRE/TEMT while transmitting
+[1128350000] ---- U7 FCR bit 2 clears the TX FIFO
+[1145890000] ---- U8 RX exact timing for divisors 1..54, all bit patterns
+[1853390000] ---- U9 RX back-to-back frames without idle time (exact timing)
+[2034190000] ---- U10 RX with a sender that is 2% slow / 2% fast
+[2919770000] ---- U11 RX FIFO: 16 bytes in order, the 17th is dropped
+[2982870000] ---- U12 RX ignores a start-bit glitch shorter than half a bit
+[3051810000] ---- U14 FCR bit 1 clears the RX FIFO
+[3069510000] ---- U15 reset in the middle of a TX frame and of an RX frame
+[3106410000] ---- U6 THR write landing exactly on the TX FIFO pop (sweep over the whole frame end window)
