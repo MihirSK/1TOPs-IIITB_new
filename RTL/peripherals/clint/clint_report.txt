@@ -1,0 +1,88 @@
+CLINT - BRIEF REPORT             Files: clint_v2.sv, tb_clint_full.sv
+
+1. STATUS
+ - clint v1 (your file) FAILS functional verification: 7 defects (sec. 2).
+ - clint v2 passes: 0 contract errors, 0 open items, all coverage closed, for
+   HARTS=1 (the SoC configuration) and HARTS=4 (Verilator and a 4-state
+   simulator, Icarus; not yet run in xsim - see sec. 6).
+ - v1 will probably not even compile in xsim / Vivado: mtime is driven by two
+   always_ff blocks (see C1).
+
+2. DEFECTS IN v1 AND FIXES IN v2
+ C1 mtime is written by TWO always_ff blocks (the rtc_tick counter and the bus
+    write). That is illegal for always_ff (error in strict tools, not
+    synthesizable) and a race when a write and a tick coincide. Verilator
+    happened to let the write win, so the testbench did not see it fail in
+    simulation; the problem is structural.
+    v2: one process, a write wins over a coincident tick.
+ C2 Reads of a hart that does not exist (msip / mtimecmp beyond HARTS) returned
+    the previous read's data: rdata was only assigned inside the hart check.
+    v2: they read 0.
+ C3 mtime was decoded as an exact match at 0xBFF8, so the upper half at 0xBFFC
+    (a 32-bit access, as mtimecmp allows) was not decoded. v2: 0xBFF8-0xBFFF.
+ C4 msip ignored the write strobes and always took data from wdata[31:0]: a
+    byte write to bytes 1..3 changed msip, a write with strb=0 changed it, and
+    the odd harts (register at +4, data on the upper lane) got the wrong lane.
+    v2: strobe and data of the addressed lane (addr[2]).
+ C5 msip read data was always on the low lane: lw from an odd hart returned 0.
+    v2: value on both 32-bit lanes.
+ C6 Region decode covered only 0x0000-0x0FFF (msip) and 0x4000-0x4FFF
+    (mtimecmp) although the comments say 0x0000-0x3FFF / 0x4000-0xBFF7.
+    v2: full ranges (only matters above 1024 / 512 harts).
+ C7 ack <= req: a master that holds req until it sees ack gets a two-cycle ack
+    and the access runs twice (harmless here, writes are idempotent, but the
+    second ack looks like the answer to the next request).
+    v2: accept once (req && !ack), ack one cycle wide.
+    [OPEN ITEM: only matters if your bus holds req; one-cycle req works in v1]
+ Unchanged: mtip = unsigned (mtime >= mtimecmp), mtimecmp resets to all ones,
+ rtc_tick adds 1 in every cycle it is high (a pulse, not an edge), only
+ addr[15:0] is decoded.
+
+3. TESTBENCH (tb_clint_full.sv)
+ Pin-level, no dut.* references. Two instances run together (HARTS=1 and 4).
+ Reference model of mtime / mtimecmp / msip updated every clock edge from the bus
+ and rtc_tick. Every cycle: msip/mtip pins == model, every accepted request is
+ answered with ack one cycle later (never otherwise), read data == model (msip:
+ the addressed 32-bit lane; 64-bit registers: all 64 bits; unmapped: 0, not
+ stale). Bus convention as in riscv_core: 32-bit stores drive {2{data}} with the
+ lane strobe, loads take the lane selected by addr[2].
+ Tests: C1 reset defaults, C2 msip (set/clear, only bit 0, byte strobes,
+ strb=0, own/other lane data, all harts), C3 mtimecmp (64-bit, each byte alone,
+ halves at +0/+4, independence), C4 mtime (counting, multi-cycle tick, byte and
+ half writes, write vs tick, read vs tick, rollover), C5 mtip (rises exactly at
+ mtime == mtimecmp, unsigned compare, rollover, per hart), C6 unmapped
+ addresses (reads 0 after a nonzero read, writes ignored), C7 reset with
+ requests in flight, C8 3000 random operations, O1 master that holds req.
+ Coverage (a hole fails): msip set+clear and mtimecmp read+write per hart, all 8
+ byte lanes, all 3 regions read+write, unmapped read+write, write coincident
+ with a tick, reset, hold master.
+
+4. RESULTS
+ v1 original : FAIL (12748 errors, 130 open items)
+ v2          : PASS (HARTS=1 and HARTS=4)
+ Each fix removed alone: write loses to tick, tick added to write, stale rdata,
+   mtime exact match, msip ignores strobe, msip low-lane data, msip low-lane read
+   all FAIL; ack-every-req -> PASS WITH OPEN ITEMS (128) [FAIL with -d STRICT_OPEN].
+   The short msip region is not detectable with HARTS<=1024 (no register exists
+   there), so it is not caught - equivalent for this SoC.
+ Injected bugs, all FAIL: signed compare, mtip with ">" instead of ">=",
+   mtimecmp ignores strobes, msip read inverted, mtimecmp reset value 0, tick
+   dropped during a read, mtime aliased above 0xC000.
+ (Mutant runs are a sample, not proof.)
+
+5. ASSUMPTIONS
+ - Only addr[15:0] is decoded; the bus decoder selects the 64 KB CLINT window.
+ - msip accesses are 32-bit (a 64-bit access covers one hart only); mtimecmp /
+   mtime accept 64-bit, 32-bit halves and byte strobes.
+ - rtc_tick is a pulse synchronous to clk; mtime += 1 in every cycle it is high.
+ - A write to mtime in the same cycle as a tick keeps the written value.
+ - The requester holds req for one edge (or until ack, O1) and waits for ack;
+   consecutive-cycle requests are not supported by v2 (one access per two cycles).
+ - Not checked: RV32-style split writes of mtimecmp glitching mtip (software
+   rule: write the high half to all ones first), timing/synthesis.
+
+6. RUN
+ Vivado: clint_v2.sv = Design Source, tb_clint_full.sv = Simulation Source,
+ top tb_clint_full, Run All. Expect:
+   contract errors = 0 (H1 0, H4 0)   open-item hits = 0
+   *** RESULT: PASS ***

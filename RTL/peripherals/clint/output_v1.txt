@@ -1,0 +1,126 @@
+### ORIGINAL clint.sv is being simulated
+### ORIGINAL clint.sv is being simulated
+[50000] H1 ---- C1 reset defaults
+[50000] H4 ---- C1 reset defaults
+[390000] H1 ---- C2 msip: per hart set/clear, only bit 0, byte strobes, lanes, other harts untouched
+[510000] H4 ---- C2 msip: per hart set/clear, only bit 0, byte strobes, lanes, other harts untouched
+[515000] H1 ERROR: msip[0]=0, model 1
+[520000] H1 ERROR: msip[0] cleared by a write without byte 0 strobe
+[525000] H1 ERROR: msip[0]=0, model 1
+[535000] H1 ERROR: msip[0]=0, model 1
+[540000] H1 ERROR: msip[0] cleared by a write with strb=0
+[545000] H1 ERROR: msip[0]=0, model 1
+[635000] H4 ERROR: msip[0]=0, model 1
+[640000] H4 ERROR: msip[0] cleared by a write without byte 0 strobe
+[645000] H4 ERROR: msip[0]=0, model 1
+[655000] H4 ERROR: msip[0]=0, model 1
+[660000] H4 ERROR: msip[0] cleared by a write with strb=0
+[665000] H4 ERROR: msip[0]=0, model 1
+[680000] H1 ---- C3 mtimecmp: 64-bit, byte strobes alone, 32-bit halves, every hart independent
+[805000] H4 ERROR: msip read lane 1 = 00000000, expected 00000001
+[810000] H4 ERROR: msip[1] read 00000000, expected 1
+[865000] H4 ERROR: msip read lane 1 = 00000000, expected 00000001
+[870000] H4 ERROR: msip[1] read 00000000 after writing FFFFFFFF, expected 1
+[885000] H4 ERROR: msip[1]=0, model 1
+[890000] H4 ERROR: msip[1] cleared by a write without byte 0 strobe
+[895000] H4 ERROR: msip[1]=0, model 1
+[905000] H4 ERROR: msip[1]=0, model 1
+[910000] H4 ERROR: msip[1] cleared by a write with strb=0
+[915000] H4 ERROR: msip[1]=0, model 1
+[945000] H4 ERROR: msip[1]=0, model 1
+[950000] H4 ERROR: msip[1] not set with data only on its own lane
+[955000] H4 ERROR: msip[1]=0, model 1
+[965000] H4 ERROR: msip[1]=1, model 0
+[970000] H4 ERROR: msip[1] set from the other lane's data
+[975000] H4 ERROR: msip[1]=1, model 0
+INFO: [USF-XSim-96] XSim completed. Design snapshot 'tb_clint_full_behav' loaded.
+INFO: [USF-XSim-97] XSim simulation ran for 1000ns
+launch_simulation: Time (s): cpu = 00:00:02 ; elapsed = 00:00:08 . Memory (MB): peak = 1097.684 ; gain = 0.992
+run all
+[1135000] H4 ERROR: msip[2]=0, model 1
+[1140000] H4 ERROR: msip[2] cleared by a write without byte 0 strobe
+[1145000] H4 ERROR: msip[2]=0, model 1
+[1155000] H4 ERROR: msip[2]=0, model 1
+[1160000] H4 ERROR: msip[2] cleared by a write with strb=0
+[1165000] H4 ERROR: msip[2]=0, model 1
+[1305000] H4 ERROR: msip read lane 1 = 00000000, expected 00000001
+[1310000] H4 ERROR: msip[3] read 00000000, expected 1
+[1365000] H4 ERROR: msip read lane 1 = 00000000, expected 00000001
+[1370000] H4 ERROR: msip[3] read 00000000 after writing FFFFFFFF, expected 1
+[1385000] H4 ERROR: msip[3]=0, model 1
+[1390000] H4 ERROR: msip[3] cleared by a write without byte 0 strobe
+[1395000] H4 ERROR: msip[3]=0, model 1
+[1405000] H4 ERROR: msip[3]=0, model 1
+[1410000] H4 ERROR: msip[3] cleared by a write with strb=0
+[1415000] H4 ERROR: msip[3]=0, model 1
+[1445000] H4 ERROR: msip[3]=0, model 1
+[1450000] H4 ERROR: msip[3] not set with data only on its own lane
+[1670000] H4 ---- C3 mtimecmp: 64-bit, byte strobes alone, 32-bit halves, every hart independent
+[1760000] H1 ---- C4 mtime: counting, byte/half writes, write vs tick, rollover
+[2695000] H1 ERROR: mtip[0]=1, model mtime=000000bbaaaa0001 mtimecmp=c0de000000000000
+[2705000] H1 ERROR: mtip[0]=1, model mtime=000000bbaaaa0001 mtimecmp=c0de000000000000
+[2715000] H1 ERROR: mtip[0]=1, model mtime=000000bbaaaa0001 mtimecmp=c0de000000000000
+[2715000] H1 ERROR: read data fedcba98aaaa0001, expected 000000bbaaaa0001 (kind 3)
+[2720000] H1 ERROR: mtime halves: fedcba98aaaa0001
+[2725000] H1 ERROR: mtip[0]=1, model mtime=000000bbaaaa0001 mtimecmp=c0de000000000000
+[2735000] H1 ERROR: mtip[0]=1, model mtime=000000bbaaaa0001 mtimecmp=c0de000000000000
+[2735000] H1 ERROR: read data 0000000000000000, expected 000000bbaaaa0001 (kind 3)
+[2740000] H1 ERROR: mtime upper half read 00000000
+[2745000] H1 ERROR: mtip[0]=1, model mtime=000000bbaaaa0001 mtimecmp=c0de000000000000
+[3550000] H1 ---- C5 mtip: unsigned compare, edge cases, rises exactly when mtime reaches mtimecmp
+[3940000] H1 ---- C6 unmapped/reserved addresses read 0 (never stale data) and ignore writes
+[4035000] H1 ERROR: read data deadbeef0badf00d, expected 0000000000000000 (kind 0)
+[4040000] H1 ERROR: read of unmapped offset 0004 returned deadbeef0badf00d
+[4075000] H1 ERROR: read data 0000000000000001, expected 0000000000000000 (kind 0)
+[4135000] H1 ERROR: read data deadbeef0badf00d, expected 0000000000000000 (kind 0)
+[4140000] H1 ERROR: read of unmapped offset 0010 returned deadbeef0badf00d
+[4175000] H1 ERROR: read data 0000000000000001, expected 0000000000000000 (kind 0)
+[4180000] H1 ERROR: 32-bit read of unmapped offset 0010 returned 00000001
+[4235000] H1 ERROR: read data deadbeef0badf00d, expected 0000000000000000 (kind 0)
+[4240000] H1 ERROR: read of unmapped offset 0ffc returned deadbeef0badf00d
+[4275000] H1 ERROR: read data 0000000000000001, expected 0000000000000000 (kind 0)
+[4535000] H1 ERROR: read data deadbeef0badf00d, expected 0000000000000000 (kind 0)
+[4540000] H1 ERROR: read of unmapped offset 4008 returned deadbeef0badf00d
+[4575000] H1 ERROR: read data 0000000000000001, expected 0000000000000000 (kind 0)
+[4580000] H1 ERROR: 32-bit read of unmapped offset 4008 returned 00000001
+[4635000] H1 ERROR: read data deadbeef0badf00d, expected 0000000000000000 (kind 0)
+[4640000] H1 ERROR: read of unmapped offset 4030 returned deadbeef0badf00d
+[4675000] H1 ERROR: read data 0000000000000001, expected 0000000000000000 (kind 0)
+[4680000] H1 ERROR: 32-bit read of unmapped offset 4030 returned 00000001
+[5240000] H1 ---- C7 reset with state set and requests in flight
+[5880000] H1 ---- C8 constrained random over all regions, strobes, ticks, unmapped addresses
+[5990000] H4 ---- C4 mtime: counting, byte/half writes, write vs tick, rollover
+[6725000] H1 ERROR: read data 0de934a4bc6e5b07, expected 43d92fe0bc6e5b07 (kind 3)
+[6745000] H1 ERROR: msip[0]=0, model 1
+[6755000] H1 ERROR: msip[0]=0, model 1
+[6765000] H1 ERROR: msip[0]=0, model 1
+[6775000] H1 ERROR: msip[0]=0, model 1
+[6785000] H1 ERROR: msip[0]=0, model 1
+[7690000] H4 ---- C5 mtip: unsigned compare, edge cases, rises exactly when mtime reaches mtimecmp
+[9490000] H4 ---- C6 unmapped/reserved addresses read 0 (never stale data) and ignore writes
+[10790000] H4 ---- C7 reset with state set and requests in flight
+[12270000] H4 ---- C8 constrained random over all regions, strobes, ticks, unmapped addresses
+[95640000] H1 ---- O1 OPEN ITEM: master holds req until ack (ack must be one cycle wide)
+[95705000] H1 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[95715000] H1 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[95725000] H1 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[95735000] H1 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[95745000] H1 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[95755000] H1 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[95765000] H1 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[95775000] H1 OPEN-ITEM: msip[0]=0, model 1
+ H1 coverage: harts=1 msip/mtimecmp per hart, 8 byte lanes, 3 regions + unmapped, write-vs-tick, unmapped reads=546
+[104950000] H4 ---- O1 OPEN ITEM: master holds req until ack (ack must be one cycle wide)
+[105015000] H4 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[105025000] H4 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[105035000] H4 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[105045000] H4 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[105055000] H4 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[105065000] H4 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[105075000] H4 OPEN-ITEM: ack without an accepted request (or ack held for two cycles)
+[105085000] H4 OPEN-ITEM: msip[0]=0, model 1
+ H4 coverage: harts=4 msip/mtimecmp per hart, 8 byte lanes, 3 regions + unmapped, write-vs-tick, unmapped reads=410
+==================================================
+ contract errors = 16855 (H1 2464, H4 14391)   open-item hits = 130  (bus handshake: req held until ack)
+ *** RESULT: FAIL ***
+==================================================

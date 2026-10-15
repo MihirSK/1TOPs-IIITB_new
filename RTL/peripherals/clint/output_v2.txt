@@ -1,0 +1,29 @@
+# run 1000ns
+[50000] H1 ---- C1 reset defaults
+[50000] H4 ---- C1 reset defaults
+[390000] H1 ---- C2 msip: per hart set/clear, only bit 0, byte strobes, lanes, other harts untouched
+[510000] H4 ---- C2 msip: per hart set/clear, only bit 0, byte strobes, lanes, other harts untouched
+[680000] H1 ---- C3 mtimecmp: 64-bit, byte strobes alone, 32-bit halves, every hart independent
+INFO: [USF-XSim-96] XSim completed. Design snapshot 'tb_clint_full_behav' loaded.
+INFO: [USF-XSim-97] XSim simulation ran for 1000ns
+launch_simulation: Time (s): cpu = 00:00:02 ; elapsed = 00:00:08 . Memory (MB): peak = 1099.023 ; gain = 1.340
+run all
+[1670000] H4 ---- C3 mtimecmp: 64-bit, byte strobes alone, 32-bit halves, every hart independent
+[1760000] H1 ---- C4 mtime: counting, byte/half writes, write vs tick, rollover
+[3600000] H1 ---- C5 mtip: unsigned compare, edge cases, rises exactly when mtime reaches mtimecmp
+[3990000] H1 ---- C6 unmapped/reserved addresses read 0 (never stale data) and ignore writes
+[5290000] H1 ---- C7 reset with state set and requests in flight
+[5930000] H1 ---- C8 constrained random over all regions, strobes, ticks, unmapped addresses
+[5990000] H4 ---- C4 mtime: counting, byte/half writes, write vs tick, rollover
+[7780000] H4 ---- C5 mtip: unsigned compare, edge cases, rises exactly when mtime reaches mtimecmp
+[9580000] H4 ---- C6 unmapped/reserved addresses read 0 (never stale data) and ignore writes
+[10880000] H4 ---- C7 reset with state set and requests in flight
+[12360000] H4 ---- C8 constrained random over all regions, strobes, ticks, unmapped addresses
+[98220000] H1 ---- O1 OPEN ITEM: master holds req until ack (ack must be one cycle wide)
+ H1 coverage: harts=1 msip/mtimecmp per hart, 8 byte lanes, 3 regions + unmapped, write-vs-tick, unmapped reads=554
+[100170000] H4 ---- O1 OPEN ITEM: master holds req until ack (ack must be one cycle wide)
+ H4 coverage: harts=4 msip/mtimecmp per hart, 8 byte lanes, 3 regions + unmapped, write-vs-tick, unmapped reads=405
+==================================================
+ contract errors = 0 (H1 0, H4 0)   open-item hits = 0  (bus handshake: req held until ack)
+ *** RESULT: PASS ***
+==================================================
