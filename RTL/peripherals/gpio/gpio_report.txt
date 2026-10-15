@@ -1,0 +1,69 @@
+GPIO - BRIEF REPORT              Files: gpio_v2.sv, tb_gpio_full.sv
+
+1. STATUS
+ - gpio v1 (your file) is FUNCTIONALLY CORRECT: 0 contract errors against the
+   testbench. One finding (sec. 2): the interrupt edge detector taps the first
+   synchroniser stage (reported as an OPEN ITEM: PASS WITH OPEN ITEMS).
+ - gpio v2 (one extra flop) passes cleanly: 0 contract errors, 0 open items, all
+   coverage closed. Run in Icarus (4-state); an earlier xsim run showed the pad resolving to X
+   (pins = xxxxxxxx) with the first pad model; this version uses a pulldown
+   primitive, declares the DUT port 'inout wire' and adds the self-test. Needs a
+   new xsim run.
+ - The testbench needs a 4-state simulator (xsim, Icarus): the pad is a real
+   tristate net with a pull-down primitive on every pin. Verilator cannot run it.
+
+2. FINDING AND FIX
+ G1 Rising edge was detected as gpio_in_sync0 & ~gpio_in_sync1, i.e. from the
+    FIRST synchroniser flop. The first stage of a synchroniser must not feed
+    logic (metastability on an asynchronous pin; invisible in simulation), and
+    the interrupt pulse came one cycle BEFORE DATA_IN showed the new value.
+    v2: third flop, edge = sync1 & ~sync2, so the pulse coincides with DATA_IN
+    updating. DATA_IN latency is unchanged (2 cycles).
+ Design notes (unchanged, not bugs):
+  - gpio_irq is a ONE-CYCLE pulse for a rising edge on any enabled pin, also on
+    pins this block drives; simultaneous edges give one pulse. There is no
+    pending/status/clear register (the 4-bit paddr has no room for one): software
+    reads DATA_IN to find the pin, or the PLIC latches the pulse.
+  - Sync flops reset to 0, so a pin that is high at reset release gives an
+    internal rising edge; it is harmless because IRQ_EN resets to 0.
+  - DATA_IN reads the pad, so an output pin reads back its own value after 2-3
+    cycles. To switch a pin to output without a glitch, write DATA_OUT first,
+    then DIR.
+
+3. TESTBENCH (tb_gpio_full.sv)
+ Pin-level. Every pin has an external driver and a pull-down (pulldown primitive);
+ the testbench never drives a pin the DUT drives. G1 starts with a PAD SELF-TEST
+ (DUT in reset: external driver on -> pins == pattern, nothing driving -> pins == 0)
+ that separates pad-model problems from DUT problems. Reference model of DATA_OUT, DIR,
+ IRQ_EN with the expected pad value = (DIR & DATA_OUT) | (~DIR & external).
+ Checked every clock: pins == expected pad; APB reads == model (DATA_IN when the
+ pad has been stable for 4 cycles); every rising edge on an enabled pin gives
+ a gpio_irq pulse within 5 cycles and a pulse without an edge is an error;
+ no X on gpio_irq / prdata; pready = 1.
+ Tests: G1 reset defaults, G2 registers (walking ones/zeros, read-only
+ DATA_IN), G3 outputs (one pin at a time, random patterns, DATA_OUT not reaching
+ input pins), G4 inputs, G5 interrupts (every pin, falling edges, disabled
+ pins, level already high, simultaneous edges, consecutive cycles, fast
+ toggling), G6 interrupts on driven pins, G7 reset with an APB write in flight,
+ G8 800 random operations, O1 interrupt pulse vs DATA_IN.
+ Coverage (a hole fails): every pin driven 0/1, DATA_IN 0/1 and an interrupt,
+ all 4 registers read+write, all scenarios.
+
+4. RESULTS (Icarus, 4-state)
+ v1 original: PASS WITH OPEN ITEMS (6)   [FAIL with -d STRICT_OPEN]
+ v2         : PASS
+ Mutants of v2, all FAIL: irq ignores IRQ_EN, falling edge, level instead of
+   edge, DIR inverted, always driving, DATA_OUT/DIR registers swapped, DATA_IN
+   writable, pin 31 not driven, DIR resets to outputs, IRQ_EN resets on, DATA_IN
+   bit 3 inverted, irq stretched to two cycles, irq masked for bit 7 (7 errors).
+ Fix removed (edge from sync0): PASS WITH OPEN ITEMS (6), same as v1.
+ Not caught: DATA_IN read from the first stage (one cycle less latency). Same
+   value, only timing; the specification gives no exact latency.
+ (Mutant runs are a sample, not proof.)
+
+5. RUN
+ Vivado: gpio_v2.sv = Design Source, tb_gpio_full.sv = Simulation Source, top
+ tb_gpio_full, Reset Behavioral Simulation, Run + "run all" (about 0.11 ms
+ simulated, seconds). Expect:
+   contract errors = 0   open-item hits = 0
+   *** RESULT: PASS ***

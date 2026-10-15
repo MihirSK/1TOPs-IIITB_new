@@ -1,0 +1,19 @@
+# run 1000ns
+[10000] ---- G1 reset defaults: all registers 0, pins released (inputs), no interrupt
+[210000] ---- G2 register read/write: full 32 bits, walking ones/zeros, DATA_IN read-only
+INFO: [USF-XSim-96] XSim completed. Design snapshot 'tb_gpio_full_behav' loaded.
+INFO: [USF-XSim-97] XSim simulation ran for 1000ns
+launch_simulation: Time (s): cpu = 00:00:02 ; elapsed = 00:00:07 . Memory (MB): peak = 1069.934 ; gain = 3.488
+run all
+[5210000] ---- G3 outputs: each pin driven only when DIR=1, pin follows DATA_OUT, DATA_IN reads the pad back
+[25920000] ---- G4 inputs: DATA_IN follows the external pad within 4 cycles, every bit both values
+[29910000] ---- G5 interrupt: one pulse per rising edge on an enabled pin, none for falling edges / disabled pins / levels
+[46940000] ---- G6 interrupt on pins driven by this block (rising edge of the pad, also for outputs)
+[47740000] ---- G7 reset with configured state and an APB write in flight
+[48040000] ---- G8 constrained random (outputs, directions, enables, external toggles, reads)
+[106950000] ---- O1 OPEN ITEM: DATA_IN must already show the new value when the interrupt pulse is seen
+==================================================
+ coverage: 32 pins out/in/irq, 4 registers r/w, 9 scenarios
+ contract errors = 0   open-item hits = 0  (interrupt pulse vs DATA_IN)
+ *** RESULT: PASS ***
+==================================================
