@@ -1,0 +1,77 @@
+[50000] ---- S1 reset defaults and idle pins
+[250000] ERROR: X/Z in prdata of register 2
+[250000] ERROR: DATA after reset = 000000xx, expected 0
+[1270000] ---- S2 register read/write, reserved bits, read-only STATUS
+[1735000] ERROR: SCK half period 4 clocks, expected 8 (DIV=7)
+[1855000] ERROR: SCK half period 12 clocks, expected 8 (DIV=7)
+[1895000] ERROR: SCK half period 4 clocks, expected 8 (DIV=7)
+[2250000] ERROR: X/Z in prdata of register 2
+[2250000] ERROR: DATA changed by a STATUS write: 000000xx
+[2250000] ---- S3 all four SPI modes x divisors 0,1,2,3,7, CS polarity, random start phase
+[3780000] ERROR: TIMEOUT waiting for BUSY to clear
+[3800000] ERROR: X/Z in prdata of register 2
+[3800000] ERROR: DATA read 000000xx, slave sent ff (mode 00, div 0)
+[3830000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[5270000] ERROR: TIMEOUT waiting for BUSY to clear
+[5290000] ERROR: X/Z in prdata of register 2
+[5290000] ERROR: DATA read 000000xx, slave sent 00 (mode 00, div 0)
+[5320000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[6770000] ERROR: TIMEOUT waiting for BUSY to clear
+[6790000] ERROR: X/Z in prdata of register 2
+[6790000] ERROR: DATA read 000000xx, slave sent 26 (mode 00, div 0)
+[6820000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[8290000] ERROR: TIMEOUT waiting for BUSY to clear
+[8310000] ERROR: X/Z in prdata of register 2
+[8310000] ERROR: DATA read 000000xx, slave sent f9 (mode 00, div 0)
+[8340000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[9800000] ERROR: TIMEOUT waiting for BUSY to clear
+[9820000] ERROR: X/Z in prdata of register 2
+[9820000] ERROR: DATA read 000000xx, slave sent ed (mode 00, div 0)
+[9850000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[11310000] ERROR: TIMEOUT waiting for BUSY to clear
+[11330000] ERROR: X/Z in prdata of register 2
+[11330000] ERROR: DATA read 000000xx, slave sent 1f (mode 00, div 0)
+[11360000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[11430000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[13130000] ERROR: TIMEOUT waiting for BUSY to clear
+[13150000] ERROR: X/Z in prdata of register 2
+[13150000] ERROR: DATA read 000000xx, slave sent ff (mode 00, div 1)
+[13180000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[14850000] ERROR: TIMEOUT waiting for BUSY to clear
+[14870000] ERROR: X/Z in prdata of register 2
+[14870000] ERROR: DATA read 000000xx, slave sent 00 (mode 00, div 1)
+[14900000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[16570000] ERROR: TIMEOUT waiting for BUSY to clear
+[16590000] ERROR: X/Z in prdata of register 2
+[16590000] ERROR: DATA read 000000xx, slave sent 0e (mode 00, div 1)
+[16620000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[18270000] ERROR: TIMEOUT waiting for BUSY to clear
+[18290000] ERROR: X/Z in prdata of register 2
+[18290000] ERROR: DATA read 000000xx, slave sent 7e (mode 00, div 1)
+[18320000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[19980000] ERROR: TIMEOUT waiting for BUSY to clear
+[20000000] ERROR: X/Z in prdata of register 2
+[20000000] ERROR: DATA read 000000xx, slave sent 82 (mode 00, div 1)
+[20030000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[21680000] ERROR: TIMEOUT waiting for BUSY to clear
+[21700000] ERROR: X/Z in prdata of register 2
+[21700000] ERROR: DATA read 000000xx, slave sent 45 (mode 00, div 1)
+[21730000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[23660000] ERROR: TIMEOUT waiting for BUSY to clear
+[23680000] ERROR: X/Z in prdata of register 2
+[23680000] ERROR: DATA read 000000xx, slave sent ff (mode 00, div 2)
+[23710000] ERROR: CSn still asserted while idle (no CS_HOLD)
+[251160000] ---- S4 large divisors (upper divider byte) in all four modes
+[1298240000] ---- S5 STATUS / DATA semantics: BUSY, RX_VALID, DATA held until the next transfer completes
+[1302500000] ---- S6 CS_HOLD: CSn stays asserted across bytes, released when CS_HOLD is cleared
+[1338070000] ---- S7 EN=0: DATA writes ignored, pins stay idle, EN=1 works again
+[1343330000] ---- S8 DATA / CTRL / DIV writes during a transfer must not corrupt it
+[1355450000] ---- S9 divider: exact first half period at any start phase; DIV change right after a transfer
+[1507060000] ---- S11 back-to-back transfers with no gap
+[1581620000] ---- S10 reset in the middle of a transfer
+[1600280000] ---- S12 constrained random (configs, bytes, CS_HOLD sequences, writes during busy, resets)
+==================================================
+ coverage: modes 4/4 divisor classes 6/6 tx/rx bits 8/8 registers 8/8 bytes checked=570
+ contract errors = 2458
+ *** RESULT: FAIL ***
+==================================================

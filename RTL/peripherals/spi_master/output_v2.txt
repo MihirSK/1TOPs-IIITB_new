@@ -1,0 +1,18 @@
+v2 passes :
+[50000] ---- S1 reset defaults and idle pins
+[1270000] ---- S2 register read/write, reserved bits, read-only STATUS
+[2250000] ---- S3 all four SPI modes x divisors 0,1,2,3,7, CS polarity, random start phase
+[94010000] ---- S4 large divisors (upper divider byte) in all four modes
+[1110490000] ---- S5 STATUS / DATA semantics: BUSY, RX_VALID, DATA held until the next transfer completes
+[1112070000] ---- S6 CS_HOLD: CSn stays asserted across bytes, released when CS_HOLD is cleared
+[1125220000] ---- S7 EN=0: DATA writes ignored, pins stay idle, EN=1 works again
+[1127840000] ---- S8 DATA / CTRL / DIV writes during a transfer must not corrupt it
+[1133960000] ---- S9 divider: exact first half period at any start phase; DIV change right after a transfer
+[1219570000] ---- S11 back-to-back transfers with no gap
+[1242530000] ---- S10 reset in the middle of a transfer
+[1255910000] ---- S12 constrained random (configs, bytes, CS_HOLD sequences, writes during busy, resets)
+==================================================
+ coverage: modes 4/4 divisor classes 6/6 tx/rx bits 8/8 registers 8/8 bytes checked=598
+ contract errors = 0
+ *** RESULT: PASS ***
+==================================================

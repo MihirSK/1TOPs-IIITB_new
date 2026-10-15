@@ -1,0 +1,81 @@
+SPI MASTER - BRIEF REPORT        Files: spi_master_v2.sv, tb_spi_full.sv
+
+1. STATUS
+ - spi_master v1 (your file) FAILS functional verification: 8 defects.
+ - spi_master v2 passes: 0 contract errors, all coverage closed (Verilator and a
+   4-state simulator, Icarus; not yet run in xsim - see sec. 6).
+ - Not covered: the BootROM/flash command sequences and SoC integration.
+
+2. DEFECTS IN v1 AND FIXES IN v2
+ V1 SPI mode timing. v1 always used "mode 1" timing: MOSI changes at the same
+    clock edge the slave samples it (no hold time) and CPHA is stored but never
+    used. Standard SPI mode 0 (what flash boot uses) does not work.
+    v2: modes 0..3: CPHA=0 samples on the leading edge, CPHA=1 on the trailing
+    edge; MOSI changes only on the other edge; bit 7 is presented at start
+    for CPHA=0.
+ V2 RX data. The receive byte was assembled after the last shift-out, so the
+    received byte was wrong (bit 7 lost, a 0 inserted). v2: sample-then-shift.
+ V3 SCK idle level. After reset SCK idled low even with CPOL=1, so the first
+    transfer started with the wrong level. v2: SCK idles at CPOL, no glitch.
+ V4 Divider. The counter free-ran, so the first half period was 1..DIV+1 clocks
+    (random) and a DIV write below the running count stalled the shifter for up to
+    65536 clocks. v2: the timer restarts at every transfer; every half period,
+    the first included, is exactly DIV+1 clocks.
+ V5 CSn was never released after a transfer (only reset released it) and had no
+    setup time before the first edge. v2: CSn is active while a transfer runs or
+    CS_HOLD (CTRL[4], new) is 1, asserted one half period before the first edge,
+    released one half period after the last. CS_HOLD keeps CSn low across the
+    bytes of a flash command.
+ V6 Writes during a transfer (DATA restarted it; CTRL/DIV changed timing or mode
+    mid-byte) corrupted it. v2 ignores CTRL/DIV/DATA writes while BUSY.
+ V7 EN=0 still ran the shifter and asserted CSn. v2: no transfer with EN=0, CSn
+    inactive, SCK at idle.
+ V8 rx_data had no reset value: DATA read X after reset (visible in 4-state
+    simulation only).
+ Programming rule (not a bug): change CPOL / CPHA / CSn_POL first, then set
+ CS_HOLD. A single CTRL write that changes CPOL and asserts CS at once gives the
+ slave a clock edge while CS asserts.
+
+3. TESTBENCH (tb_spi_full.sv) - same style as the other testbenches
+ Pin-level only. APB master; SPI slave model that is mode-aware, changes MISO
+ only on its shift edge and samples MOSI with real setup/hold rules (a MOSI
+ change at the sampling edge is an error); pin monitor: exact half period
+ (DIV+1 clocks), 16 edges per byte, CSn asserted >= 1 half period before the
+ first edge and released >= 1 half period after the last, SCK idle at CPOL, no
+ SCK activity while CSn is inactive, no X, pready = 1.
+ Tests: S1 reset defaults, S2 registers/reserved bits, S3 all 4 modes x
+ divisors 0,1,2,3,7 x CSn polarity x random start phase, S4 large divisors
+ (15,100,256,1000), S5 STATUS/DATA semantics, S6 CS_HOLD sequences in all modes,
+ S7 EN=0, S8 writes during a transfer, S9 divider phase and DIV change, S10
+ reset mid-transfer, S11 back-to-back transfers, S12 400 random operations.
+ Coverage (a hole fails): 4 modes, 6 divisor classes, every TX/RX bit as 0 and 1,
+ all APB registers read+write, CSn_POL=1, CS_HOLD, EN=0, write-while-busy, reset.
+
+4. RESULTS
+ v1 original: FAIL (2167 errors: half-period errors, CSn never released, wrong
+              DATA, timeouts, MOSI hold violation, X on DATA in 4-state)
+ v2         : PASS
+ Each fix removed alone, all FAIL: mode-1-only timing, RX shift off by one,
+   idle level low, short first half period, CSn never released, DATA write
+   during busy accepted, DIV write during busy accepted, EN ignored.
+ Injected bugs, all FAIL: LSB-first TX, LSB-first RX, STATUS bits swapped, CSn
+   polarity inverted, half period +1, RX_VALID not cleared at start, CS_HOLD
+   ignored. (Mutant runs are a sample, not proof.)
+
+5. ASSUMPTIONS (change TB constants if your intent differs)
+ - SCK = clk / (2*(DIV+1)); every SCK edge is DIV+1 clocks after the previous.
+ - CSn_POL=0 means CSn active low; CS_HOLD is a new bit; writes are ignored while
+   BUSY; DATA writes ignored while EN=0; reading DATA does not clear RX_VALID and
+   DATA keeps the last received byte until the next transfer completes.
+ - MISO is sampled directly in the clk domain (no synchroniser): the slave must
+   change MISO at least one clk before the sampling edge, so DIV=0 needs a very
+   fast slave and is only meaningful in simulation.
+ - APB: pready is always 1 (no wait states); byte offsets 0x00/0x04/0x08/0x0C.
+ Not implemented (unchanged): interrupt, FIFO, LSB-first mode, word sizes other
+ than 8 bits, multiple chip selects.
+
+6. RUN
+ Vivado: spi_master_v2.sv = Design Source, tb_spi_full.sv = Simulation Source,
+ top tb_spi_full, Run All (a few ms simulated). Expect:
+   contract errors = 0
+   *** RESULT: PASS ***
